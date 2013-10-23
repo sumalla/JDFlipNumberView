@@ -50,24 +50,12 @@ typedef NS_OPTIONS(NSUInteger, JDFlipAnimationDirection) {
 		self.backgroundColor = [UIColor clearColor];
         self.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin;
         self.autoresizesSubviews = NO;
-        _digitCount = digitCount;
-        
-        // init single digit views
-		JDFlipNumberDigitView* view = nil;
-		NSMutableArray* allViews = [[NSMutableArray alloc] initWithCapacity:digitCount];
-		for (int i = 0; i < digitCount; i++) {
-			view = [[JDFlipNumberDigitView alloc] init];
-			view.frame = CGRectMake(i*view.frame.size.width, 0, view.frame.size.width, view.frame.size.height);
-			[self addSubview: view];
-			[allViews addObject: view];
-		}
-		self.digitViews = [[NSArray alloc] initWithArray: allViews];
         
         // setup properties
+        self.digitCount = digitCount;
         self.animationType = JDFlipAnimationTypeTopDown;
-        self.maximumValue = pow(10, digitCount)-1;
+        self.maximumValue = NSUIntegerMax;
         self.targetMode = NO;
-		super.frame = CGRectMake(0, 0, digitCount*view.frame.size.width, view.frame.size.height);
     }
     return self;
 }
@@ -190,6 +178,39 @@ typedef NS_OPTIONS(NSUInteger, JDFlipAnimationDirection) {
         JDFlipNumberDigitView *digit = self.digitViews[i];
         digit.animationDuration = animationDuration;
         animationDuration *= 10;
+    }
+}
+
+- (void)setDigitCount:(NSUInteger)digitCount;
+{
+    digitCount = MAX(1,digitCount);
+    if (digitCount == self.digitCount) {
+        return;
+    }
+    
+    // remove current views
+    for (JDFlipNumberView *view in self.digitViews) {
+        [view removeFromSuperview];
+    }
+    
+    // add new views
+    CGSize digitSize = CGSizeZero;
+    NSMutableArray* allViews = [[NSMutableArray alloc] initWithCapacity:digitCount];
+    for (int i = 0; i < digitCount; i++) {
+        JDFlipNumberDigitView *view = [[JDFlipNumberDigitView alloc] init];
+        digitSize = view.bounds.size;
+        view.frame = CGRectMake(i*digitSize.width, 0, digitSize.width, digitSize.height);
+        [self addSubview: view];
+        [allViews addObject: view];
+    }
+    self.digitViews = [[NSArray alloc] initWithArray: allViews];
+    
+    // set initial frame or set current frame again
+    if (CGSizeEqualToSize(self.bounds.size, CGSizeZero)) {
+        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y,
+                                digitCount*digitSize.width, digitSize.height);
+    } else {
+        [self setFrame:self.frame];
     }
 }
 
@@ -348,7 +369,7 @@ typedef NS_OPTIONS(NSUInteger, JDFlipAnimationDirection) {
 }
 
 #pragma mark -
-#pragma mark resizing
+#pragma mark layout
 
 - (void)setFrame:(CGRect)frame;
 {

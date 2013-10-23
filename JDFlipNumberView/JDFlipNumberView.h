@@ -17,8 +17,7 @@ typedef void(^JDFlipAnimationCompletionBlock)(BOOL finished);
 @property (nonatomic, assign) NSInteger value;
 @property (nonatomic, assign) NSUInteger maximumValue;
 @property (nonatomic, assign) CGFloat animationDuration;
-@property (nonatomic, readonly) NSUInteger digitCount;
-
+@property (nonatomic, assign) NSUInteger digitCount;
 
 - (id)initWithDigitCount:(NSUInteger)digitCount;
 
